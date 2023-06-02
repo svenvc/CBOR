@@ -25,6 +25,11 @@ CBORTag class >> number: number content: content [
 		yourself
 ]
 
+{ #category : #writing }
+CBORTag >> cborOn: cborWriter [
+	cborWriter writeTag: number content: content
+]
+
 { #category : #accessing }
 CBORTag >> content [
 

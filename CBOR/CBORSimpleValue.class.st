@@ -10,6 +10,11 @@ Class {
 	#category : #CBOR
 }
 
+{ #category : #writing }
+CBORSimpleValue >> cborOn: cborWriter [
+	cborWriter writeSimpleValue: number
+]
+
 { #category : #accessing }
 CBORSimpleValue >> number [
 

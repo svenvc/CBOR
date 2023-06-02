@@ -10,6 +10,13 @@ CBORTest >> appendixAData [
 ]
 
 { #category : #accessing }
+CBORTest >> appendixADataOrdered [
+	^ (NeoJSONReader on: self appendixAJson readStream) 
+			mapClass: OrderedDictionary;
+			next
+]
+
+{ #category : #accessing }
 CBORTest >> appendixAJson [
 	"'https://github.com/cbor/test-vectors/raw/master/appendix_a.json' asUrl retrieveContents"
 	
@@ -661,4 +668,16 @@ CBORTest >> testReadingAppendixA [
 			decoded isFloat
 				ifTrue: [ self assert: output closeTo: decoded ]
 				ifFalse: [ self assert: output equals: decoded ] ] ]
+]
+
+{ #category : #tests }
+CBORTest >> testWritingAppendixA [
+	self appendixADataOrdered do: [ :each |
+		each at: #decoded ifPresent: [ :decoded |
+			(each at: #roundtrip)
+				ifTrue: [ | expected output |
+					expected := ByteArray readHexFrom: (each at: #hex).
+					output := ByteArray streamContents: [ :out |
+						(CBORWriter on: out) nextPut: decoded ].
+					self assert: output equals: expected ] ] ]
 ]

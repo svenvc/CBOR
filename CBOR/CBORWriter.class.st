@@ -40,37 +40,75 @@ CBORWriter >> on: binaryReadStream [
 
 { #category : #writing }
 CBORWriter >> writeBreak [
-	stream nextPut: 16rFF
+	self writeSimpleValue: 31
+]
+
+{ #category : #writing }
+CBORWriter >> writeBytes: byteArray [
+	self writeMajorType: 2 argument: byteArray size.
+	stream nextPutAll: byteArray 
 ]
 
 { #category : #writing }
 CBORWriter >> writeFalse [
-	stream nextPut: 16rF5
+	self writeSimpleValue: 20
+]
+
+{ #category : #writing }
+CBORWriter >> writeFloat: float [
+	stream nextPut: 7 << 5 + 27.
+	stream nextPutAll: (float asIEEE64BitWord asByteArrayOfSize: 8).
+	"we must use smaller float types if possible"
 ]
 
 { #category : #writing }
 CBORWriter >> writeInteger: integer [
-	(integer between: 0 and: 23)
-		ifTrue: [ ^ stream nextPut: integer ].
-	(integer between: -23 and: -1)
-		ifTrue: [ ^ stream nextPut: (2r00100000 + (integer negated - 1)) ].
-	self error: 'CBOR integer out of range'
+	(integer between: -18446744073709551616 and: 18446744073709551615)
+		ifTrue: [
+			integer positive
+				ifTrue: [ self writeMajorType: 0 argument: integer ]
+				ifFalse: [ self writeMajorType: 1 argument: integer negated - 1 ] ]
+		ifFalse: [
+			integer positive
+				ifTrue: [ 
+					self writeTag: 2 content: integer asByteArray ]
+				ifFalse: [ 
+					self writeTag: 3 content: (integer negated - 1) asByteArray ] ]
+]
+
+{ #category : #writing }
+CBORWriter >> writeList: collection [
+	self writeMajorType: 4 argument: collection size.
+	collection do: [ :each | self nextPut: each ]
+]
+
+{ #category : #writing }
+CBORWriter >> writeMajorType: majorType argument: integer [
+	| headerByte index numberOfBytes |
+	(integer between: 0 and: 18446744073709551615)
+		ifFalse: [ self error: 'CBOR unsigned integer argument out of range' ].
+	headerByte := majorType << 5.
+	integer 
+		ifNil: [ ^ stream nextPut: headerByte + 2r11111 "indefinitive" ].
+	integer < 24
+		ifTrue: [ ^ stream nextPut: headerByte + integer ].
+	index := #(256 65536 4294967296 18446744073709551616) findFirst: [ :each | integer < each ].
+	numberOfBytes := #(1 2 4 8) at: index.
+	stream nextPut: headerByte + 23 + index.
+	numberOfBytes to: 1 by: -1 do: [ :byteIndex |
+		stream nextPut: (integer byteAt: byteIndex) ]
 ]
 
 { #category : #writing }
 CBORWriter >> writeMap: keyValueCollection [
-	keyValueCollection size < 24
-		ifTrue: [ 
-			stream nextPut: (2r10100000 + keyValueCollection size).
-			keyValueCollection keysAndValuesDo: [ :key :value |
-				self nextPut: key; nextPut: value ].
-			^ self ].
-	self error: 'CBOR map out too large'
+	self writeMajorType: 5 argument: keyValueCollection size.
+	keyValueCollection keysAndValuesDo: [ :key :value |
+		self nextPut: key; nextPut: value ]
 ]
 
 { #category : #writing }
 CBORWriter >> writeNull [
-	stream nextPut: 16rF6
+	self writeSimpleValue: 22
 ]
 
 { #category : #writing }
@@ -79,11 +117,32 @@ CBORWriter >> writeObject: object [
 ]
 
 { #category : #writing }
+CBORWriter >> writeSimpleValue: integer [
+	(integer between: 0 and: 255)
+		ifFalse: [ self error: 'CBOR simple value out of range' ].
+	self writeMajorType: 7 argument: integer
+]
+
+{ #category : #writing }
+CBORWriter >> writeString: string [
+	| bytes |
+	bytes := string utf8Encoded.
+	self writeMajorType: 3 argument: bytes size.
+	stream nextPutAll: bytes
+]
+
+{ #category : #writing }
+CBORWriter >> writeTag: number content: content [
+	self writeMajorType: 6 argument: number.
+	self nextPut: content 
+]
+
+{ #category : #writing }
 CBORWriter >> writeTrue [
-	stream nextPut: 16rF4
+	self writeSimpleValue: 21
 ]
 
 { #category : #writing }
 CBORWriter >> writeUndefined [
-	stream nextPut: 16rF7
+	self writeSimpleValue: 23
 ]
