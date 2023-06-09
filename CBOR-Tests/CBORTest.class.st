@@ -660,6 +660,18 @@ CBORTest >> appendixAJson [
 ]
 
 { #category : #tests }
+CBORTest >> testFloat16 [
+	{
+		1.0 . -1.0 . 0.0 . 
+		100.0 . 1000.0 . 10000.0 .
+		-1.5 . -1.05. 7.5 .
+		Float pi. Float e. (1/3) asFloat } do: [ :float | | encoded decoded |
+			encoded := CBORFloat16Utils write: float.
+			decoded := CBORFloat16Utils read: encoded.
+			self assert: decoded closeTo: float precision: 0.01 ]
+]
+
+{ #category : #tests }
 CBORTest >> testReadingAppendixA [
 	self appendixAData do: [ :each | | input output |
 		input := ByteArray readHexFrom: (each at: #hex).

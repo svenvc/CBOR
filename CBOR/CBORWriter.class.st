@@ -56,9 +56,16 @@ CBORWriter >> writeFalse [
 
 { #category : #writing }
 CBORWriter >> writeFloat: float [
+	(CBORFloat16Utils inRange: float)
+		ifTrue: [ 
+			stream nextPut: 7 << 5 + 25.
+			^ stream nextPutAll: ((CBORFloat16Utils write: float) asByteArrayOfSize: 2) ].
+	(float exponent between: -126 and: 127)
+		ifTrue: [ 
+			stream nextPut: 7 << 5 + 26.
+			^ stream nextPutAll: (float asIEEE32BitWord asByteArrayOfSize: 4) ].		
 	stream nextPut: 7 << 5 + 27.
-	stream nextPutAll: (float asIEEE64BitWord asByteArrayOfSize: 8).
-	"we must use smaller float types if possible"
+	stream nextPutAll: (float asIEEE64BitWord asByteArrayOfSize: 8)
 ]
 
 { #category : #writing }
