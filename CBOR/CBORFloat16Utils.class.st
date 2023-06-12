@@ -32,22 +32,17 @@ CBORFloat16Utils class >> read: halfWord [
 
 { #category : #utilities }
 CBORFloat16Utils class >> write: float [
-	| signBit exponent mantisse |
-	signBit := float signBit. "1 bit"
-	float isZero 
-		ifTrue: [ ^ signBit << 15 "0" ].
+	| exponent mantisse |
+	(exponent := float exponent "11 bits") > 15
+		ifTrue: [ (float signBit << 15) + 16r7C00 "infinity" ].
+	(float isZero or: [ exponent < -14 ])
+		ifTrue: [ ^ float signBit << 15 "0" ].
 	float isFinite
-		ifFalse: [ ^ float isNaN ifTrue: [ 16r7CFF "NaN" ] ifFalse: [ (signBit << 15) + 16r7C00 "infinity" ] ].
-	exponent := float exponent. "11 bits"
-	mantisse := float significandAsInteger. "52 bits"
-	exponent > 15 
-		ifTrue: [ (signBit << 15) + 16r7C00 "infinity" ].
-	exponent < -14
-		ifTrue: [ ^ signBit << 15 "0" ].		
+		ifFalse: [ ^ float isNaN ifTrue: [ 16r7CFF "NaN" ] ifFalse: [ (float signBit << 15) + 16r7C00 "infinity" ] ].
 	exponent := (exponent + 15) bitAnd: 2r11111. "5 bits"
+	mantisse := float significandAsInteger. "52 bits"
 	mantisse := (mantisse * (2 ** -42)) rounded. "53/52 -> 11/10 bits"
 	(exponent = 1 and: [ (mantisse bitAt: 11) = 0 ])
 		ifTrue: [ exponent := 0 "subnormal" ].
-	mantisse := mantisse bitAnd: 2r1111111111.
-	^ (signBit << 15) + (exponent << 10) + mantisse
+	^ (float signBit << 15) + (exponent << 10) + (mantisse bitAnd: 2r1111111111)
 ]
