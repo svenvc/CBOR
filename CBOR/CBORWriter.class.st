@@ -16,7 +16,8 @@ Class {
 	#name : #CBORWriter,
 	#superclass : #Object,
 	#instVars : [
-		'stream'
+		'stream',
+		'floatPolicy'
 	],
 	#category : #CBOR
 }
@@ -31,6 +32,17 @@ CBORWriter class >> on: binaryReadStream [
 	^ self new 
 		on: binaryReadStream; 
 		yourself
+]
+
+{ #category : #accessing }
+CBORWriter >> floatPolicy [
+	^ floatPolicy ifNil: [ self floatPolicy: #smallest ]
+]
+
+{ #category : #accessing }
+CBORWriter >> floatPolicy: policy [
+	self assert: (#(smallest half single double) includes: policy).
+	^ floatPolicy := #write , policy capitalized , #Float:
 ]
 
 { #category : #accessing }
@@ -55,22 +67,25 @@ CBORWriter >> writeBytes: byteArray [
 ]
 
 { #category : #writing }
+CBORWriter >> writeDoubleFloat: float [
+	stream nextPut: 7 << 5 + 27.
+	stream nextPutAll: (float asIEEE64BitWord asByteArrayOfSize: 8)
+]
+
+{ #category : #writing }
 CBORWriter >> writeFalse [
 	self writeSimpleValue: 20
 ]
 
 { #category : #writing }
 CBORWriter >> writeFloat: float [
-	(CBORFloat16Utils inRange: float)
-		ifTrue: [ 
-			stream nextPut: 7 << 5 + 25.
-			^ stream nextPutAll: ((CBORFloat16Utils write: float) asByteArrayOfSize: 2) ].
-	(float exponent between: -126 and: 127)
-		ifTrue: [ 
-			stream nextPut: 7 << 5 + 26.
-			^ stream nextPutAll: (float asIEEE32BitWord asByteArrayOfSize: 4) ].		
-	stream nextPut: 7 << 5 + 27.
-	stream nextPutAll: (float asIEEE64BitWord asByteArrayOfSize: 8)
+	self perform: self floatPolicy with: float
+]
+
+{ #category : #writing }
+CBORWriter >> writeHalfFloat: float [
+	stream nextPut: 7 << 5 + 25.
+	stream nextPutAll: ((CBORFloat16Utils write: float) asByteArrayOfSize: 2)
 ]
 
 { #category : #writing }
@@ -133,6 +148,23 @@ CBORWriter >> writeSimpleValue: integer [
 	(integer between: 0 and: 255)
 		ifFalse: [ self error: 'CBOR simple value out of range' ].
 	self writeMajorType: 7 argument: integer
+]
+
+{ #category : #writing }
+CBORWriter >> writeSingleFloat: float [
+	stream nextPut: 7 << 5 + 26.
+	stream nextPutAll: (float asIEEE32BitWord asByteArrayOfSize: 4)
+]
+
+{ #category : #writing }
+CBORWriter >> writeSmallestFloat: float [
+	(CBORFloat16Utils inRange: float)
+		ifTrue: [ 
+			^ self writeHalfFloat: float ].
+	(float exponent between: -126 and: 127)
+		ifTrue: [ 
+			^ self writeSingleFloat: float ].		
+	self writeDoubleFloat: float
 ]
 
 { #category : #writing }

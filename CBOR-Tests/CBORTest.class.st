@@ -718,6 +718,20 @@ CBORTest >> testFloat16EncodingDecoding [
 ]
 
 { #category : #tests }
+CBORTest >> testFloats [
+	| data encoded decoded |
+	data := {
+		1.0 . -1.0 . 0.0 . 
+		100.0 . 1000.0 . 10000.0 .
+		-1.5 . -1.05. 7.5 .
+		Float pi. Float e. (1/3) asFloat }.
+	encoded := CBORWriter encode: data.
+	decoded := CBORReader decode: encoded.
+	data with: decoded do: [ :in :out |
+		self assert: out closeTo: in precision: 0.01 ]
+]
+
+{ #category : #tests }
 CBORTest >> testLargeIntegers [
 	| data encoded decoded |
 	data := { 
