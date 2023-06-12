@@ -1,7 +1,7 @@
 "
 I am CBORTag, a numeric tag as an annotation to some content.
 
-This is an optional extension mechanism. 
+This is an optional extension mechanism. On my class side I maintain a number of reader blocks for specfic integer types.
 "
 Class {
 	#name : #CBORTag,
@@ -21,12 +21,16 @@ CBORTag class >> initialize [
 	"Modification tag 2023-06-12"
 	
 	self readers
+		at: 0 put: [ :content | DateAndTime fromString: content ];
+		at: 1 put: [ :content | DateAndTime fromUnixTime: content asInteger "no float support" ];
 		at: 2 put: [ :content | content asInteger ];
 		at: 3 put: [ :content | content asInteger negated - 1 ]
 ]
 
 { #category : #'instance creation' }
 CBORTag class >> number: number content: content [
+	"CBORTag creation can result in another object when a reader exists"
+
 	^ self readers 
 		at: number
 		ifPresent: [ :reader | reader value: content ]

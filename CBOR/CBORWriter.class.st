@@ -5,7 +5,9 @@ Example:
 
 ByteArray streamContents: [ :out | (CBORWriter on: out) nextPut: { 1 -> 2. 3 -> 4 } asDictionary ].
 
-References
+CBORWriter encode: { 1 -> 2. 3 -> 4 } asOrderedDictionary.
+
+References:
 
 - https://en.wikipedia.org/wiki/CBOR
 - https://cbor.io

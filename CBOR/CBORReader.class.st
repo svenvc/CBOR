@@ -5,7 +5,9 @@ Example:
 
 (CBORReader on: (ByteArray readHexFrom: 'a201020304') readStream) next.
 
-References
+CBORReader decode: #[162 1 2 3 4].
+
+References:
 
 - https://en.wikipedia.org/wiki/CBOR
 - https://cbor.io
@@ -80,22 +82,6 @@ CBORReader >> readBytes: shortCount [
 				[ (bytes := self next) = CBORBreak soleInstance ] whileFalse: [ 
 					bytes class = ByteArray ifFalse: [ self error: 'CBOR definitve-length bytes expected' ].
 					out nextPutAll: bytes ] ] ]
-]
-
-{ #category : #reading }
-CBORReader >> readIEEE16Float: halfWord [
-	| exponent mantisse value |
-	exponent := (halfWord >> 10) bitAnd: 16r1F.
-	mantisse := halfWord bitAnd: 16r3FF.
-	value := exponent = 0
-		ifTrue: [ mantisse * (2 ** -24) ]
-		ifFalse: [ 
-			exponent ~= 31
-				ifTrue: [ (mantisse + 1024) * (2 ** (exponent - 25)) ]
-				ifFalse: [ mantisse = 0 ifTrue: [ Float infinity ] ifFalse: [ Float nan ] ] ].
-	^ (halfWord bitAt: 16) = 1
-			ifTrue: [ value asFloat negated ]
-			ifFalse: [ value asFloat ]
 ]
 
 { #category : #reading }
@@ -182,5 +168,6 @@ CBORReader >> readTag: shortCount [
 	number := (self readArgument: shortCount).
 	number ifNil: [ self error: 'CBOR not well-formed' ].
 	content := self next.
+	"CBORTag creation can result in another object when a reader exists"
 	^ CBORTag number: number content: content
 ]
