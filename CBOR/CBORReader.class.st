@@ -21,6 +21,11 @@ Class {
 	#category : #CBOR
 }
 
+{ #category : #converting }
+CBORReader class >> decode: bytes [
+	^ (self on: bytes readStream) next
+]
+
 { #category : #'instance creation' }
 CBORReader class >> on: binaryReadStream [
 	^ self new 
@@ -109,12 +114,12 @@ CBORReader >> readList: shortCount [
 CBORReader >> readMap: shortCount [
 	^ (self readArgument: shortCount)
 		ifNil: [ | key dictionary|
-			dictionary := Dictionary new.
+			dictionary := OrderedDictionary new.
 			[ (key := self next) = CBORBreak soleInstance ] whileFalse: [
 				dictionary at: key put: self next ].
 			dictionary ] 
 		ifNotNil: [ :size | | dictionary |
-			dictionary := Dictionary new: size.
+			dictionary := OrderedDictionary new: size.
 			size timesRepeat: [ 
 				dictionary at: self next put: self next ].
 			dictionary ]

@@ -21,6 +21,11 @@ Class {
 	#category : #CBOR
 }
 
+{ #category : #converting }
+CBORWriter class >> encode: data [
+	^ ByteArray streamContents: [ :out | (self on: out) nextPut: data ]
+]
+
 { #category : #'instance creation' }
 CBORWriter class >> on: binaryReadStream [
 	^ self new 

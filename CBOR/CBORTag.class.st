@@ -10,19 +10,32 @@ Class {
 		'number',
 		'content'
 	],
+	#classVars : [
+		'Readers'
+	],
 	#category : #CBOR
 }
 
+{ #category : #'class initialization' }
+CBORTag class >> initialize [
+	"Modification tag 2023-06-12"
+	
+	self readers
+		at: 2 put: [ :content | content asInteger ];
+		at: 3 put: [ :content | content asInteger negated - 1 ]
+]
+
 { #category : #'instance creation' }
 CBORTag class >> number: number content: content [
-	number = 2
-		ifTrue: [ ^ content asInteger ].
-	number = 3
-		ifTrue: [ ^ content asInteger negated - 1 ].		
-	^ self new
-		number: number;
-		content: content;
-		yourself
+	^ self readers 
+		at: number
+		ifPresent: [ :reader | reader value: content ]
+		ifAbsent: [ self new number: number; content: content; yourself ]
+]
+
+{ #category : #private }
+CBORTag class >> readers [
+	^ Readers ifNil: [ Readers := Dictionary new ]
 ]
 
 { #category : #writing }
