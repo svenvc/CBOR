@@ -660,6 +660,15 @@ CBORTest >> appendixAJson [
 ]
 
 { #category : #tests }
+CBORTest >> testBytes [
+	| data encoded decoded |
+	data := { #[1 2 3]. #[]. #[0 255 0 255] }.
+	encoded := CBORWriter encode: data.
+	decoded := CBORReader decode: encoded.
+	self assert: decoded equals: data
+]
+
+{ #category : #tests }
 CBORTest >> testCBORUndefined [
 	| data encoded decoded |
 	data := { CBORUndefined soleInstance. nil. CBORUndefined soleInstance }.
@@ -732,6 +741,15 @@ CBORTest >> testFloats [
 ]
 
 { #category : #tests }
+CBORTest >> testIntegers [
+	| data encoded decoded |
+	data := #(0 1 -1 100 1000 10000 -100 -1000 -10000).
+	encoded := CBORWriter encode: data.
+	decoded := CBORReader decode: encoded.
+	self assert: decoded equals: data
+]
+
+{ #category : #tests }
 CBORTest >> testLargeIntegers [
 	| data encoded decoded |
 	data := { 
@@ -746,7 +764,7 @@ CBORTest >> testLargeIntegers [
 { #category : #tests }
 CBORTest >> testLists [
 	| data encoded decoded |
-	data := #((1 2 3) (-1 -2 -3) (123456 -123456) ('A' 'ü') (true false) (nil)).
+	data := #((1 2 3) (-1 -2 -3) (123456 -123456) ('A' 'ü') () (()) (true false) (nil)).
 	encoded := CBORWriter encode: data.
 	decoded := CBORReader decode: encoded.
 	self assert: decoded equals: data
@@ -758,6 +776,7 @@ CBORTest >> testMaps [
 	data := {
 		'small' -> ({ 'one'->1. 'two'->2. 'three'->3 } as: OrderedDictionary).
 		'large' -> ({ 'positive'->123456. 'negative'->(-123456) } as: OrderedDictionary).
+		'empty' -> OrderedDictionary new.
 		'special' -> ({ 'true'->true. 'false'->false. 'nil'->nil } as: OrderedDictionary) } as: OrderedDictionary.
 	encoded := CBORWriter encode: data.
 	decoded := CBORReader decode: encoded.
@@ -783,6 +802,16 @@ CBORTest >> testReadingAppendixA [
 			decoded isFloat
 				ifTrue: [ self assert: output closeTo: decoded ]
 				ifFalse: [ self assert: output equals: decoded ] ] ]
+]
+
+{ #category : #tests }
+CBORTest >> testStrings [
+	| data encoded decoded |
+	data := #('abc' 'ABC' 'élève en Français' '' '''' '"' 'X') 
+					, { Character alphabet. String loremIpsum }. 
+	encoded := CBORWriter encode: data.
+	decoded := CBORReader decode: encoded.
+	self assert: decoded equals: data
 ]
 
 { #category : #tests }

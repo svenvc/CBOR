@@ -18,11 +18,11 @@ Class {
 
 { #category : #'class initialization' }
 CBORTag class >> initialize [
-	"Modification tag 2023-06-12"
+	"Modification tag 2023-06-13"
 	
 	self readers
 		at: 0 put: [ :content | DateAndTime fromString: content ];
-		at: 1 put: [ :content | DateAndTime fromUnixTime: content asInteger "no float support" ];
+		at: 1 put: [ :content | DateAndTime fromUnixTime: content ];
 		at: 2 put: [ :content | content asInteger ];
 		at: 3 put: [ :content | content asInteger negated - 1 ]
 ]
