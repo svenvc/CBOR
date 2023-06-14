@@ -42,6 +42,23 @@ CBORTag class >> readers [
 	^ Readers ifNil: [ Readers := Dictionary new ]
 ]
 
+{ #category : #'instance creation' }
+CBORTag class >> selfDescribed: value [
+	"Wrap value so that the magic header d9d9f7 preceded it,
+	effectively making it self described	(see section 3.4.6 of the RFC)"
+	
+	^ self number: 55799 content: value
+]
+
+{ #category : #comparing }
+CBORTag >> = anObject [
+	"Answer whether the receiver and anObject represent the same object."
+
+	self == anObject ifTrue: [ ^ true ].
+	self class = anObject class ifFalse: [ ^ false ].
+	^ content = anObject content and: [ number = anObject number ]
+]
+
 { #category : #writing }
 CBORTag >> cborOn: cborWriter [
 	cborWriter writeTag: number content: content
@@ -57,6 +74,13 @@ CBORTag >> content [
 CBORTag >> content: anObject [
 
 	content := anObject
+]
+
+{ #category : #comparing }
+CBORTag >> hash [
+	"Answer an integer value that is related to the identity of the receiver."
+
+	^ content hash bitXor: number hash
 ]
 
 { #category : #accessing }

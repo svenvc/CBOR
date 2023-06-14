@@ -805,6 +805,17 @@ CBORTest >> testReadingAppendixA [
 ]
 
 { #category : #tests }
+CBORTest >> testSelfDescribed [
+	| data encoded decoded |
+	data := CBORTag selfDescribed: #(0 1 42).
+	encoded := CBORWriter encode: data.
+	self assert: (encoded beginsWith: (ByteArray readHexFrom: 'd9d9f7')).
+	decoded := CBORReader decode: encoded.
+	self assert: decoded equals: data.
+	self assert: decoded content equals: #(0 1 42)
+]
+
+{ #category : #tests }
 CBORTest >> testStrings [
 	| data encoded decoded |
 	data := #('abc' 'ABC' 'élève en Français' '' '''' '"' 'X') 
