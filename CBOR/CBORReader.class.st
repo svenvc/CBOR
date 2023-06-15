@@ -35,6 +35,11 @@ CBORReader class >> on: binaryReadStream [
 		yourself
 ]
 
+{ #category : #'error handling' }
+CBORReader >> error: message [
+	^ CBORError new signal: message
+]
+
 { #category : #accessing }
 CBORReader >> majorTypeHandlers [
 	^ #( readPositiveInteger: readNegativeInteger: readBytes: readString: readList: readMap: readTag: readSimple: )
@@ -43,11 +48,28 @@ CBORReader >> majorTypeHandlers [
 { #category : #accessing }
 CBORReader >> next [
 	| headerByte majorType shortCount reader|
-	headerByte := stream next.
+	headerByte := self nextByte.
 	majorType := headerByte >> 5.
 	reader := self majorTypeHandlers at: majorType + 1.
 	shortCount := headerByte bitAnd: 2r11111.
 	^ self perform: reader with: shortCount
+]
+
+{ #category : #accessing }
+CBORReader >> nextByte [
+	| byte |
+	byte := stream next.
+	byte ifNil: [ self error: 'CBOR input at end, cannot read byte' ].
+	^ byte
+]
+
+{ #category : #accessing }
+CBORReader >> nextBytes: count [
+	| bytes read |
+	bytes := ByteArray new: count.
+	read := stream readInto: bytes startingAt: 1 count: count.
+	read = count ifFalse: [ self error: 'CBOR input at end, cannot read enough bytes' ].
+	^ bytes
 ]
 
 { #category : #'instance creation' }
@@ -63,7 +85,7 @@ CBORReader >> readArgument: shortCount [
 			numberOfBytes := #( 1 2 4 8 ) at: shortCount - 23.
 			value := 0.
 			(numberOfBytes - 1) * 8 to: 0 by: -8 do: [ :shift |
-				value := value + (stream next bitShift: shift) ].
+				value := value + (self nextByte bitShift: shift) ].
 			^ value ].
 	"28,29,30 are reserved for future additions"
 	shortCount = 31 ifTrue: [ ^ nil "indefinitive" ].
@@ -74,7 +96,7 @@ CBORReader >> readArgument: shortCount [
 CBORReader >> readBytes: shortCount [
 	^ (self readArgument: shortCount)
 		ifNotNil: [ :size | | bytes |
-			bytes := stream next: size.
+			bytes := self nextBytes: size.
 			bytes size = size ifFalse: [ self error: 'CBOR bytes too short' ].
 			bytes ]
 		ifNil: [
@@ -136,7 +158,7 @@ CBORReader >> readSimple: shortCount [
 	shortCount = 23
 		ifTrue: [ ^ CBORUndefined soleInstance ].
 	shortCount = 24
-		ifTrue: [ ^ CBORSimpleValue new number: stream next; yourself ].
+		ifTrue: [ ^ CBORSimpleValue new number: self nextByte; yourself ].
 	(shortCount between: 25 and: 27)
 		ifTrue: [ | integer |
 			integer := self readArgument: shortCount. "for values 25,26,27 or sizes 2, 4, 8 bytes"
@@ -152,7 +174,7 @@ CBORReader >> readSimple: shortCount [
 CBORReader >> readString: shortCount [
 	^ (self readArgument: shortCount)
 		ifNotNil: [ :size | | bytes |
-			bytes := stream next: size.
+			bytes := self nextBytes: size.
 			bytes size = size ifFalse: [ self error: 'CBOR string too short' ].
 			bytes utf8Decoded ]
 		ifNil: [

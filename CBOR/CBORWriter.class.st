@@ -36,6 +36,11 @@ CBORWriter class >> on: binaryReadStream [
 		yourself
 ]
 
+{ #category : #'error handling' }
+CBORWriter >> error: message [
+	^ CBORError new signal: message
+]
+
 { #category : #accessing }
 CBORWriter >> floatPolicy [
 	^ floatPolicy ifNil: [ self floatPolicy: #smallest ]

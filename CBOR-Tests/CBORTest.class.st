@@ -816,6 +816,15 @@ CBORTest >> testSelfDescribed [
 ]
 
 { #category : #tests }
+CBORTest >> testSimpleValues [
+	| data encoded decoded |
+	data := { CBORSimpleValue with: 7. CBORSimpleValue with: 42. CBORSimpleValue with: 240 }.
+	encoded := CBORWriter encode: data.
+	decoded := CBORReader decode: encoded.
+	self assert: decoded equals: data
+]
+
+{ #category : #tests }
 CBORTest >> testStrings [
 	| data encoded decoded |
 	data := #('abc' 'ABC' 'élève en Français' '' '''' '"' 'X') 
