@@ -5,11 +5,6 @@ Class {
 }
 
 { #category : #accessing }
-CBORTest >> appendixAData [
-	^ NeoJSONReader fromString: self appendixAJson
-]
-
-{ #category : #accessing }
 CBORTest >> appendixADataOrdered [
 	^ (NeoJSONReader on: self appendixAJson readStream) 
 			mapClass: OrderedDictionary;
