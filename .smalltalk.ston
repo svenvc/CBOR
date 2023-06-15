@@ -1,0 +1,8 @@
+SmalltalkCISpec {
+  #loading : [
+    SCIMetacelloLoadSpec {
+      #baseline : 'CBOR',
+      #platforms : [ #pharo ]
+    }
+  ]
+}
