@@ -75,8 +75,11 @@ CBORWriter >> writeBytes: byteArray [
 
 { #category : #writing }
 CBORWriter >> writeDoubleFloat: float [
+	| word64 |
 	stream nextPut: 7 << 5 + 27.
-	stream nextPutAll: (float asIEEE64BitWord asByteArrayOfSize: 8)
+	word64 := float asIEEE64BitWord.
+	8 to: 1 by: -1 do: [ :each |
+		stream nextPut: (word64 byteAt: each) ]
 ]
 
 { #category : #writing }
@@ -91,8 +94,12 @@ CBORWriter >> writeFloat: float [
 
 { #category : #writing }
 CBORWriter >> writeHalfFloat: float [
+	| word16 |
 	stream nextPut: 7 << 5 + 25.
-	stream nextPutAll: ((CBORFloat16Utils write: float) asByteArrayOfSize: 2)
+	word16 := CBORFloat16Utils write: float.
+	stream 
+		nextPut: (word16 byteAt: 2);
+		nextPut: (word16 byteAt: 1)
 ]
 
 { #category : #writing }
@@ -159,20 +166,26 @@ CBORWriter >> writeSimpleValue: integer [
 
 { #category : #writing }
 CBORWriter >> writeSingleFloat: float [
+	| word32 |
 	stream nextPut: 7 << 5 + 26.
-	stream nextPutAll: (float asIEEE32BitWord asByteArrayOfSize: 4)
+	word32 := float asIEEE32BitWord.
+	4 to: 1 by: -1 do: [ :each | 
+		stream nextPut: (word32 byteAt: each) ]
 ]
 
 { #category : #writing }
 CBORWriter >> writeSmallestFloat: float [
+	| word |
+	word := 0.
 	((CBORFloat16Utils inRange: float)
-			and: [ float = (CBORFloat16Utils read: (CBORFloat16Utils write: float)) ])
+			and: [ float = (CBORFloat16Utils read: (word := CBORFloat16Utils write: float)) ])
 		ifTrue: [ 
-			^ self writeHalfFloat: float ].
+			^ 	stream nextPut: 7 << 5 + 25; nextPut: (word byteAt: 2); nextPut: (word byteAt: 1) ].
 	((float exponent between: -126 and: 127)
-			and: [ float = (Float fromIEEE32Bit: float asIEEE32BitWord) ])
+			and: [ float = (Float fromIEEE32Bit: (word := float asIEEE32BitWord)) ])
 		ifTrue: [ 
-			^ self writeSingleFloat: float ].		
+			stream nextPut: 7 << 5 + 26.
+			^ 4 to: 1 by: -1 do: [ :each | stream nextPut: (word byteAt: each) ] ].		
 	self writeDoubleFloat: float
 ]
 
