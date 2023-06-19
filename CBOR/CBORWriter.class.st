@@ -165,10 +165,12 @@ CBORWriter >> writeSingleFloat: float [
 
 { #category : #writing }
 CBORWriter >> writeSmallestFloat: float [
-	(CBORFloat16Utils inRange: float)
+	((CBORFloat16Utils inRange: float)
+			and: [ float = (CBORFloat16Utils read: (CBORFloat16Utils write: float)) ])
 		ifTrue: [ 
 			^ self writeHalfFloat: float ].
-	(float exponent between: -126 and: 127)
+	((float exponent between: -126 and: 127)
+			and: [ float = (Float fromIEEE32Bit: float asIEEE32BitWord) ])
 		ifTrue: [ 
 			^ self writeSingleFloat: float ].		
 	self writeDoubleFloat: float

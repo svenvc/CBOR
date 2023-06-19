@@ -832,7 +832,7 @@ CBORTest >> testStrings [
 { #category : #tests }
 CBORTest >> testWritingAppendixA [
 	self appendixADataOrdered withIndexDo: [ :each : index |
-		(#(22 28 31) includes: index) 
+		(#(28) includes: index) 
 			ifFalse: [ 
 				each at: #decoded ifPresent: [ :decoded |
 					(each at: #roundtrip)
