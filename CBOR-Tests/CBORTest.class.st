@@ -699,7 +699,7 @@ CBORTest >> testFloat16Decoding [
 { #category : #tests }
 CBORTest >> testFloat16Encoding [
 	#(
-		(16r0000 0.0) "(16r0001 0.000000059604645)" "(16r03ff 0.000060975552)"
+		(16r0000 0.0) (16r0001 0.000000059604645) (16r03ff 0.000060975552)
 		(16r0400 0.00006103515625) (16r3555 0.33325195 ) (16r3bff 0.99951172)
 		(16r3c00 1.0) (16r3c01 1.00097656) (16r7bff 65504.0) (16r8000 -0.0) (16rc000 -2.0) )
 		,
@@ -832,13 +832,11 @@ CBORTest >> testStrings [
 { #category : #tests }
 CBORTest >> testWritingAppendixA [
 	self appendixADataOrdered withIndexDo: [ :each : index |
-		(#(28) includes: index) 
-			ifFalse: [ 
-				each at: #decoded ifPresent: [ :decoded |
-					(each at: #roundtrip)
-						ifTrue: [ | expected output |
-							expected := ByteArray readHexFrom: (each at: #hex).
-							output := ByteArray streamContents: [ :out |
-								(CBORWriter on: out) nextPut: decoded ].
-							self assert: output equals: expected ] ] ] ]
+		each at: #decoded ifPresent: [ :decoded |
+			(each at: #roundtrip)
+				ifTrue: [ | expected output |
+					expected := ByteArray readHexFrom: (each at: #hex).
+					output := ByteArray streamContents: [ :out |
+						(CBORWriter on: out) nextPut: decoded ].
+					self assert: output equals: expected ] ] ]
 ]

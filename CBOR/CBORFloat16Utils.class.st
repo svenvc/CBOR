@@ -11,7 +11,7 @@ Class {
 
 { #category : #utilities }
 CBORFloat16Utils class >> inRange: float [
-	^ float isInfinite or: [ float exponent between: -14 and: 15 ]
+	^ float isInfinite or: [ float exponent between: -24 and: 15 ]
 ]
 
 { #category : #utilities }
@@ -35,14 +35,14 @@ CBORFloat16Utils class >> write: float [
 	| exponent mantisse |
 	(exponent := float exponent "11 bits") > 15
 		ifTrue: [ (float signBit << 15) + 16r7C00 "infinity" ].
-	(float isZero or: [ exponent < -14 ])
+	(float isZero or: [ exponent < -24 ])
 		ifTrue: [ ^ float signBit << 15 "0" ].
 	float isFinite
 		ifFalse: [ ^ float isNaN ifTrue: [ 16r7CFF "NaN" ] ifFalse: [ (float signBit << 15) + 16r7C00 "infinity" ] ].
-	exponent := (exponent + 15) bitAnd: 2r11111. "5 bits"
 	mantisse := float significandAsInteger. "52 bits"
 	mantisse := (mantisse * (2 ** -42)) rounded. "53/52 -> 11/10 bits"
-	(exponent = 1 and: [ (mantisse bitAt: 11) = 0 ])
-		ifTrue: [ exponent := 0 "subnormal" ].
+	exponent := exponent < -14
+		ifTrue: [ "subnormal" mantisse := mantisse bitShift: (exponent + 14). 0 ]
+		ifFalse: [ (exponent + 15) bitAnd: 2r11111. "5 bits" ].
 	^ (float signBit << 15) + (exponent << 10) + (mantisse bitAnd: 2r1111111111)
 ]
