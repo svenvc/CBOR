@@ -39,7 +39,7 @@ You can also load using the following expression:
 
     Metacello new
       baseline: 'CBOR';
-      repository: 'github://svenvc/CBOR';
+      repository: 'github://svenvc/CBOR:main';
       load.
    
 Written and supported by Sven Van Caekenberghe. MIT Licensed.
