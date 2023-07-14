@@ -162,7 +162,7 @@ CBORReader >> readSimple: shortCount [
 	(shortCount between: 25 and: 27)
 		ifTrue: [ | integer |
 			integer := self readArgument: shortCount. "for values 25,26,27 or sizes 2, 4, 8 bytes"
-			shortCount = 25 ifTrue: [ ^ CBORFloat16Utils read: integer ].
+			shortCount = 25 ifTrue: [ ^ CBORHalfFloatUtils read: integer ].
 			shortCount = 26 ifTrue: [ ^ Float fromIEEE32Bit: integer ].
 			shortCount = 27 ifTrue: [ ^ Float fromIEEE64Bit: integer ] ].
 	shortCount = 31

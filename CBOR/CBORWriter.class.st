@@ -96,7 +96,7 @@ CBORWriter >> writeFloat: float [
 CBORWriter >> writeHalfFloat: float [
 	| word16 |
 	stream nextPut: 7 << 5 + 25.
-	word16 := CBORFloat16Utils write: float.
+	word16 := CBORHalfFloatUtils write: float.
 	stream 
 		nextPut: (word16 byteAt: 2);
 		nextPut: (word16 byteAt: 1)
@@ -177,8 +177,8 @@ CBORWriter >> writeSingleFloat: float [
 CBORWriter >> writeSmallestFloat: float [
 	| word |
 	word := 0.
-	((CBORFloat16Utils inRange: float)
-			and: [ float = (CBORFloat16Utils read: (word := CBORFloat16Utils write: float)) ])
+	((CBORHalfFloatUtils inRange: float)
+			and: [ float = (CBORHalfFloatUtils read: (word := CBORHalfFloatUtils write: float)) ])
 		ifTrue: [ 
 			^ 	stream nextPut: 7 << 5 + 25; nextPut: (word byteAt: 2); nextPut: (word byteAt: 1) ].
 	((float exponent between: -126 and: 127)

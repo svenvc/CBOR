@@ -1,21 +1,21 @@
 "
-I am CBORFloat16Utils, adding encoding/decoding support for the half-precision, IEEE 754 16-bit (binary16) floating-point format.
+I am CBORHalfFloatUtils, adding encoding/decoding support for the half-precision, IEEE 754 16-bit (binary16) floating-point format.
 
-https://en.wikipedia.org/wiki/Half-precision_floating-point_format
+[https://en.wikipedia.org/wiki/Half-precision_floating-point_format]
 "
 Class {
-	#name : #CBORFloat16Utils,
+	#name : #CBORHalfFloatUtils,
 	#superclass : #Object,
 	#category : #CBOR
 }
 
 { #category : #utilities }
-CBORFloat16Utils class >> inRange: float [
+CBORHalfFloatUtils class >> inRange: float [
 	^ float isInfinite or: [ float exponent between: -24 and: 15 ]
 ]
 
 { #category : #utilities }
-CBORFloat16Utils class >> read: halfWord [
+CBORHalfFloatUtils class >> read: halfWord [
 	| exponent mantisse value |
 	exponent := (halfWord >> 10) bitAnd: 2r11111. "5-bit exponent"
 	mantisse := halfWord bitAnd: 2r1111111111. "10-bit mantisse"
@@ -31,7 +31,7 @@ CBORFloat16Utils class >> read: halfWord [
 ]
 
 { #category : #utilities }
-CBORFloat16Utils class >> write: float [
+CBORHalfFloatUtils class >> write: float [
 	| exponent mantisse |
 	(exponent := float exponent "11 bits") > 15
 		ifTrue: [ (float signBit << 15) + 16r7C00 "infinity" ].

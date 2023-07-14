@@ -691,7 +691,7 @@ CBORTest >> testFloat16Decoding [
 		,
 	{ { 16r7c00 . Float infinity } . { 16rfc00 . Float infinity negated } } do: [ :spec | 
 			self 
-				assert: (CBORFloat16Utils read: spec first) 
+				assert: (CBORHalfFloatUtils read: spec first) 
 				closeTo: spec second 
 				precision: 0.01 ]
 ]
@@ -705,7 +705,7 @@ CBORTest >> testFloat16Encoding [
 		,
 	{ { 16r7c00 . Float infinity } . { 16rfc00 . Float infinity negated } } do: [ :spec | 
 			self 
-				assert: (CBORFloat16Utils write: spec second) 
+				assert: (CBORHalfFloatUtils write: spec second) 
 				equals: spec first ]
 ]
 
@@ -716,8 +716,8 @@ CBORTest >> testFloat16EncodingDecoding [
 		100.0 . 1000.0 . 10000.0 .
 		-1.5 . -1.05. 7.5 .
 		Float pi. Float e. (1/3) asFloat } do: [ :float | | encoded decoded |
-			encoded := CBORFloat16Utils write: float.
-			decoded := CBORFloat16Utils read: encoded.
+			encoded := CBORHalfFloatUtils write: float.
+			decoded := CBORHalfFloatUtils read: encoded.
 			self assert: decoded closeTo: float precision: 0.01 ]
 ]
 
